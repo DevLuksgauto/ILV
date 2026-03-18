@@ -3,11 +3,11 @@
 import { Button } from "@/components/Atoms/Button/Button"
 import { FormField } from "@/components/Molecules/FormField/FormField"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Radio, RadioGroup } from "@/components/ui/radio"
 import { useAuth } from "@/hooks/useAuth"
 import { useIgaLoginForm } from "@/hooks/useForm"
 import { useProfiles } from "@/hooks/useProfiles"
-import { Alert, Box, HStack, Stack, Text } from "@chakra-ui/react"
+import { Alert, Box, Button as ChakraButton, HStack, Stack, Text } from "@chakra-ui/react"
+import { QuestionOutlineIcon } from "@chakra-ui/icons"
 import { useState } from "react"
 import { Controller } from "react-hook-form"
 
@@ -104,27 +104,60 @@ export function LoginForm() {
           </Box>
         ) : null}
 
-        <Controller
-          control={form.control}
-          name="operationMode"
-          render={({ field }) => (
-            <Box>
-              <Text fontSize="sm" fontWeight="600" mb="2">
-                Operation Mode
-              </Text>
-              <RadioGroup
-                name={field.name}
-                value={field.value}
-                onValueChange={(details) => field.onChange(details.value)}
-              >
-                <HStack gap="4">
-                  <Radio value="online">Online (SSH)</Radio>
-                  <Radio value="offline">Offline (Local)</Radio>
-                </HStack>
-              </RadioGroup>
-            </Box>
-          )}
-        />
+        {submitError ? (
+          <Alert.Root status="error" variant="subtle" borderRadius="md">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Description>{submitError}</Alert.Description>
+            </Alert.Content>
+          </Alert.Root>
+        ) : null}
+
+        {submitFeedback ? (
+          <Alert.Root status={submitFeedback.status} variant="subtle" borderRadius="md">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Description>{submitFeedback.message}</Alert.Description>
+            </Alert.Content>
+          </Alert.Root>
+        ) : null}
+
+        {showIgxNotice ? (
+          <Alert.Root status="info" variant="subtle" borderRadius="md">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title>IGA Control</Alert.Title>
+              <Alert.Description>
+                Para funcionalidades completas de IGA Control, use usuario igx ou
+                iga.
+              </Alert.Description>
+            </Alert.Content>
+          </Alert.Root>
+        ) : null}
+
+        <Box>
+          <Text fontSize="sm" fontWeight="600" mb="2">
+            Operation Mode
+          </Text>
+          <HStack spacing="2">
+            <ChakraButton
+              flex="1"
+              size="sm"
+              variant={mode === "online" ? "solid" : "outline"}
+              onClick={() => form.setValue("operationMode", "online")}
+            >
+              Online (SSH)
+            </ChakraButton>
+            <ChakraButton
+              flex="1"
+              size="sm"
+              variant={mode === "offline" ? "solid" : "outline"}
+              onClick={() => form.setValue("operationMode", "offline")}
+            >
+              Offline (Local)
+            </ChakraButton>
+          </HStack>
+        </Box>
 
         {mode === "online" ? (
           <Stack gap="3">
@@ -169,71 +202,53 @@ export function LoginForm() {
               placeholder="C:/logs/iga or /home/user/logs/iga"
               helperText="The folder structure must follow server pattern (xpress/, idm/, idg/, etc)."
             />
-            <Button type="button" variant="outline" size="sm" onClick={showOfflineHelp}>
-              Help to find folder path
-            </Button>
+            <HStack justify="space-between" spacing="2" flexWrap="wrap">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                leftIcon={<QuestionOutlineIcon />}
+                onClick={showOfflineHelp}
+              >
+                Help
+              </Button>
+              <Text fontSize="xs" color="gray.500" maxW="320px">
+                Tip: Open Windows Explorer, navigate to your logs folder, click the address bar,
+                copy the path (Ctrl+C), and paste it here.
+              </Text>
+            </HStack>
           </Stack>
         )}
 
-        <Controller
-          control={form.control}
-          name="saveProfile"
-          render={({ field }) => (
-            <Checkbox
-              checked={field.value}
-              onCheckedChange={(details) => field.onChange(!!details.checked)}
-            >
-              Securely save connection
-            </Checkbox>
-          )}
-        />
+        <Stack gap="2">
+          <Controller
+            control={form.control}
+            name="saveProfile"
+            render={({ field }) => (
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={(details) => field.onChange(!!details.checked)}
+              >
+                Securely save connection
+              </Checkbox>
+            )}
+          />
 
-        <Controller
-          control={form.control}
-          name="saveAsDefault"
-          render={({ field }) => (
-            <Checkbox
-              checked={field.value}
-              onCheckedChange={(details) => field.onChange(!!details.checked)}
-            >
-              Use as default on next login
-            </Checkbox>
-          )}
-        />
+          <Controller
+            control={form.control}
+            name="saveAsDefault"
+            render={({ field }) => (
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={(details) => field.onChange(!!details.checked)}
+              >
+                Use as default on next login
+              </Checkbox>
+            )}
+          />
+        </Stack>
 
-        {submitError ? (
-          <Alert.Root status="error" variant="subtle" borderRadius="md">
-            <Alert.Indicator />
-            <Alert.Content>
-              <Alert.Title>Falha ao enviar</Alert.Title>
-              <Alert.Description>{submitError}</Alert.Description>
-            </Alert.Content>
-          </Alert.Root>
-        ) : null}
-
-        {submitFeedback ? (
-          <Alert.Root status={submitFeedback.status} variant="subtle" borderRadius="md">
-            <Alert.Indicator />
-            <Alert.Content>
-              <Alert.Description>{submitFeedback.message}</Alert.Description>
-            </Alert.Content>
-          </Alert.Root>
-        ) : null}
-
-        {showIgxNotice ? (
-          <Alert.Root status="info" variant="subtle" borderRadius="md">
-            <Alert.Indicator />
-            <Alert.Content>
-              <Alert.Title>IGA Control</Alert.Title>
-              <Alert.Description>
-                Para funcionalidades completas de IGA Control, use usuario igx ou
-                iga.
-              </Alert.Description>
-            </Alert.Content>
-          </Alert.Root>
-        ) : null}
-
-        <Button type="submit" colorPalette="blue" loading={isSubmitting}>
+        <Button type="submit" w="full" colorPalette="blue" loading={isSubmitting}>
           Connect
         </Button>
       </Stack>
